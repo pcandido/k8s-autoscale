@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: api
+  name: api
+spec:
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - image: pcandido/k8s-autoscale-api
+        name: api
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+spec:
+  minReplicas: 1
+  maxReplicas: 50
+  targetCPUUtilizationPercentage: 50
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api
+  name: api
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api
+  name: api-np
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: api
+  type: NodePort
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: load-test
+spec:
+  template:
+    metadata:
+    spec:
+      containers:
+      - image: pcandido/k8s-autoscale-load-test
+        name: load-test
+      restartPolicy: Never
