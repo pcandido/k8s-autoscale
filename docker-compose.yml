@@ -1,0 +1,23 @@
+networks:
+  nw-load-test:
+
+services:
+  api:
+    image: pcandido/k8s-autoscale/api
+    build: api
+    container_name: api
+    ports:
+      - 3000:3000
+    networks:
+      - nw-load-test
+    environment:
+      PORT: 3000
+
+  load-test:
+    image: pcandido/k8s-autoscale/load-test
+    build: load-test
+    container_name: load-test
+    networks:
+      - nw-load-test
+    depends_on:
+      - api
